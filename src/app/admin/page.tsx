@@ -1,78 +1,10 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { MOTION_ORDER, type Project, type Task } from "@/lib/types";
+import { MOTION_ORDER, type Project } from "@/lib/types";
+import { AdminTaskCard } from "./_components/AdminTaskCard";
+import { AddTaskForm } from "./_components/AddTaskForm";
 
 export const dynamic = "force-dynamic";
-
-function TaskCard({ task }: { task: Task }) {
-  const borderStyle =
-    task.visibility === "public" ? "border-solid" : "border-dashed";
-
-  const visibleBlockers = (task.blocked_by ?? [])
-    .map((b) => b.blocking_task?.short_id)
-    .filter((s): s is string => Boolean(s));
-
-  return (
-    <article
-      className={`relative border ${borderStyle} border-rule bg-bg-card px-4 pt-8 pb-4`}
-    >
-      <span className="absolute top-2 right-2 border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
-        {task.visibility === "public" ? "PUBLIC" : "PRIVATE"}
-      </span>
-
-      <div className="flex items-start gap-3">
-        <input type="checkbox" disabled className="mt-1" />
-
-        <div className="flex-1">
-          <div className="flex items-baseline gap-2">
-            {task.short_id && (
-              <span className="font-mono text-xs text-text-3">
-                {task.short_id}
-              </span>
-            )}
-            {task.status === "in_progress" && (
-              <span className="border border-solid border-accent-line bg-accent-soft px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-accent">
-                in progress
-              </span>
-            )}
-            <h3 className="font-sans font-semibold text-text">{task.title}</h3>
-          </div>
-
-          {task.description && (
-            <p className="mt-1 text-xs text-text-2">{task.description}</p>
-          )}
-
-          {visibleBlockers.length > 0 && (
-            <p className="mt-2 inline-block border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
-              Blocked by {visibleBlockers.join(", ")}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col items-end gap-1 text-[10px] text-text-3">
-          <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
-            {task.status.replace("_", " ")}
-          </span>
-          {task.horizon && (
-            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
-              {task.horizon}
-            </span>
-          )}
-          {task.effort && (
-            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
-              effort: {task.effort}
-            </span>
-          )}
-          {task.impact && (
-            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
-              impact: {task.impact}
-            </span>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
 
 export default async function AdminHome() {
   const supabase = await createSupabaseServerClient();
@@ -103,6 +35,11 @@ export default async function AdminHome() {
   const projects = (data ?? []) as unknown as Project[];
   const tasks = projects.flatMap((p) => p.tasks ?? []);
   const privateCount = tasks.filter((t) => t.visibility === "private").length;
+  const projectOptions = projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+  }));
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-8 font-sans text-sm text-text bg-bg">
@@ -129,6 +66,10 @@ export default async function AdminHome() {
         </span>
       </header>
 
+      <div className="mt-6">
+        <AddTaskForm projects={projectOptions} />
+      </div>
+
       <div className="mt-8 space-y-8">
         {projects.map((project) => {
           const projectTasks = project.tasks ?? [];
@@ -147,6 +88,10 @@ export default async function AdminHome() {
           );
 
           if (project.slug === "career") {
+            const orderedKeys = MOTION_ORDER.map((m) => m.key);
+            const unmotioned = projectTasks.filter(
+              (t) => !t.motion || !orderedKeys.includes(t.motion)
+            );
             return (
               <section key={project.id}>
                 {heading}
@@ -163,12 +108,24 @@ export default async function AdminHome() {
                         </h3>
                         <div className="mt-2 space-y-3">
                           {subset.map((task) => (
-                            <TaskCard key={task.id} task={task} />
+                            <AdminTaskCard key={task.id} task={task} />
                           ))}
                         </div>
                       </div>
                     );
                   })}
+                  {unmotioned.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-text-2">
+                        Unassigned
+                      </h3>
+                      <div className="mt-2 space-y-3">
+                        {unmotioned.map((task) => (
+                          <AdminTaskCard key={task.id} task={task} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
             );
@@ -179,7 +136,7 @@ export default async function AdminHome() {
               {heading}
               <div className="mt-3 space-y-3">
                 {projectTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <AdminTaskCard key={task.id} task={task} />
                 ))}
               </div>
             </section>
