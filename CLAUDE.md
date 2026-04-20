@@ -56,6 +56,10 @@ Line count math: for N body paragraphs, `wc -l` reports `2N + 1` (subject + blan
 
 [HARD] No `Co-Authored-By:` trailer on any commit. None of the existing commits on this repo carry one, and this is a portfolio repo where author signal matters.
 
+[HARD] The `printf` invocation must use double quotes around the format string. Single quotes prevent `\n` expansion and produce literal `\n` characters instead of newlines — this is the same failure mode heredocs produced in Phase 1, dressed differently. Single-quoted `printf` for multi-line commit messages is forbidden.
+
+[HARD] No speculative commit body content. Commit message bodies cover what shipped in this commit and why. They do not editorialise about future briefs, predict how downstream work will reuse the current change, or commit the project to implementation choices that haven't been designed yet. If a sentence in the body refers to a brief that hasn't shipped, delete it. The brief reference at the top of the body (e.g. "Brief 2A-1.") is the only forward-looking element permitted.
+
 ### 1.2 `wc -l` is display-only inside `&&` chains
 
 `wc -l file && next-command` runs `next-command` regardless of what `wc -l` printed, because `wc -l` exits 0 on success regardless of the value it reports. To make `wc -l` an actual gate, use one of:

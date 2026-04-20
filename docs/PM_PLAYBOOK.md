@@ -51,6 +51,30 @@ Each brief's **predicted vs actual operator time** goes into the running table m
 
 Columns to maintain per brief: predicted operator minutes, actual operator minutes, delta, notes on what drove the delta.
 
+## 2.6 Truncated permission dialogs
+
+If a Claude Code permission dialog truncates a chained command such that the operator (or PM chat reviewing) cannot see:
+
+- the full command from start to finish
+- any predicted values (line counts, expected output sizes) used as gates
+- what runs after any verification gate
+
+...then deny the action and require the agent to show the full command structure in its conversation output before re-attempting. The dialog is a UI artifact; the agent's prose is the source of truth. Approving an opaque chained command violates the Tier 3 review-each-action contract.
+
+## 2.7 Deferred-verification flag for shipped-but-unrendered code
+
+If a brief ships CSS classes, code branches, or rendering paths that the brief's own verification cannot exercise (e.g. a dashed-border class for private cards, but the brief renders only public cards), the brief must:
+
+1. Name the deferred verification explicitly in scope notes
+2. Identify which downstream brief will first exercise the path
+3. The downstream brief must include an explicit verification step for the deferred path
+
+This prevents code from shipping that no one ever proves works until production reveals the bug.
+
+## 2.8 Corrections
+
+**Netlify push-to-live timing.** Netlify push-to-live is near-realtime (under a minute typical). The "~20 minute" figure originally documented in the Phase 1 handoff was actually brief-to-brief total elapsed time, not push-to-live, and was recorded in error. Correction made April 2026 during Brief 2A-1.
+
 ---
 
 *PM playbook created April 2026 at end of Brief 1. Update when patterns change.*
