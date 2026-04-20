@@ -156,3 +156,71 @@ The new chat should read this handoff first thing. The "what shipped" + "process
 ---
 
 *Handoff written by PM chat at end of Brief 1. Commit this to `/projects/dashboard/private/pm-handoffs/phase-1-brief-1-handoff.md` per VISIBILITY.md (private — operational detail, not portfolio surface).*
+
+---
+
+## Operating context for Brief 1B (and beyond)
+
+This section is forward-looking — it's what the *next* PM chat needs to operate well, not a debrief of what shipped. Future handoffs should preserve a section like this.
+
+### Strategic framing
+
+This build is **portfolio + utility**, in that order. The dashboard is itself the artifact for an AI-First Senior PM career transition. Recruiters and hiring managers will land on the public GitHub repo, read DECISIONS.md, browse the commit history, and infer how the operator thinks. Bias every brief toward **clean over fast** when those conflict. A working scrappy dashboard ships in days; a defensible portfolio piece ships in weeks. We're optimising for the second.
+
+Concretely: prefer one extra Plan-Mode round than one shippable-but-quietly-wrong commit. Prefer terse honest commit messages and decision records over polish theatre. Prefer "stop and ask" over "improvise and explain after."
+
+### The trust ladder (when to involve PM chat vs let Claude Code run)
+
+| Tier | Pattern | Examples |
+|---|---|---|
+| **1 — Direct execute** | Claude Code goes alone, no Plan Mode, no PM-chat involvement | Renames, typos, formatting, "show me the file", "run the tests", reversible-with-one-git-command |
+| **2 — Plan Mode, you approve** | Claude Code plans, you read, you approve, no PM-chat | Refactors in one file, conventional new components, obvious bug fixes, dependency bumps |
+| **3 — Plan Mode, paste plan to PM chat first** | Plan goes through PM chat before APPROVED | Anything touching DECISIONS.md / SCHEMA.sql / VISIBILITY.md / CLAUDE.md, anything touching auth/RLS/env vars, anything that defines a pattern future code copies, phase boundaries, first-time-using-X |
+| **4 — Strategy project, not PM** | Out of PM scope entirely | Architectural decisions, pivots, anything that would amend DECISIONS.md materially |
+
+Default for Brief 1B: **Tier 3** for the brief's plan itself (PM writes it, Claude Code plans it, operator pastes the plan back to PM before APPROVED). **Tier 2** for any small mid-brief follow-up edits. Trust ratchets up over time as patterns prove themselves — by Phase 2, much of the work should be Tier 2.
+
+### Brief 1B pre-resolved decisions
+
+These were settled during Brief 1's chat. Don't relitigate.
+
+- **Server components for the Supabase fetch.** Not client components. RLS via the anon key handles the public/private filter at the database layer, but server-side fetch is cleaner architecture and avoids shipping the anon key into the browser bundle (even though it's safe to expose, server fetch is the right pattern for this build).
+- **Brief 1B is two prompts, not one.** Prompt A: install `@supabase/supabase-js`, create `src/lib/supabase.ts`, no page changes yet. Prompt B: replace `src/app/page.tsx` with the scaffold-green page that fetches and renders. Same reason as Brief 1A's two-prompt split: catch infra problems before they tangle with UI work.
+- **No styling effort in Brief 1B.** Tailwind defaults only. Brief 2A handles the execution-co aesthetic.
+
+### Constraint marking convention
+
+Every brief from here uses explicit tags on numeric or behavioural constraints:
+
+- `[HARD]` — stop and ask if reality differs at all from prediction
+- `[SOFT — guidance only]` — proceed if reality is close enough; flag in the report
+
+Ambiguous constraints in Brief 1A caused both a deviation past a hard rule (the /tmp move) and an unnecessary stop on a soft rule (README at 24 vs ~30 lines). Tagging removes the guesswork.
+
+### Standard stop-condition boilerplate
+
+Every Brief 1B+ Claude Code prompt ends with this exact paragraph:
+
+> If reality differs from the plan's predictions in any way — file conflict count, command output, error messages, file presence, dependency versions, anything — STOP and ask before improvising. "Unexpected behavior" includes anything not explicitly enumerated in the plan. Never run `git add`, `git commit`, or `git push` until the operator replies with the literal word `APPROVED`. A clean build is not permission to commit.
+
+### Standard push verification chain
+
+When approved to push, use this exact pattern (Claude Code already discovered it; canonising for reuse):
+
+```
+git push origin main 2>&1 && echo "---HEAD---" && git log -1 --format="%H%n%s" && echo "---REMOTE---" && git rev-parse origin/main
+```
+
+Single self-verifying chain: pushes, prints local HEAD hash + subject, prints remote pointer. Both should match.
+
+### Surface quirks (Claude Code in desktop app, Opus 4.7 1M)
+
+- Working directory immutable per session. New session every time the scope changes.
+- New sessions default to `worktree` checkbox **on**. Always uncheck before pasting any prompt.
+- "Always allow" is forbidden during pattern-setting briefs. Allow once is the default.
+- Plan Mode is Shift+Tab (twice on first toggle to skip "auto-accept" mode).
+- Permission prompts for `git commit`, `git push`, and complex shell chains are non-overrideable — those will always require fresh approval. Good. Don't try to suppress them.
+
+---
+
+*Operating context added April 2026 at end of Brief 1. Update when patterns change.*
