@@ -39,7 +39,7 @@ This repo is errin-os: Next.js dashboard at `errin-os.netlify.app` (public read)
 
 ## Engineering conventions (captured from real failures)
 
-These conventions were learned during Briefs 1A, 1B-A, and 1B-B. Follow them by default. `[HARD]` rules require stop-and-ask if reality differs; other items are standard procedure.
+These conventions were learned during Briefs 1A, 1B-A, 1B-B, 2A-1, and 2A-2. Follow them by default. `[HARD]` rules require stop-and-ask if reality differs; other items are standard procedure.
 
 ### 1.1 Multi-line commit messages
 
@@ -105,3 +105,36 @@ When reporting verification or completion, expand any `›` chevrons in the chat
 ### 1.6 Dependency installs
 
 Use `npm install`, not yarn or pnpm. For new runtime dependencies during pattern-setting briefs, pin to an exact version with `--save-exact` (no `^` or `~` prefix in `package.json`). Loosening to caret ranges is a deliberate decision per dependency, not a default.
+
+### 1.7 Per-step gate invariance
+
+Commit, push, and verify are always separate permission gates. `git add` staging also requires its own gate. Discipline does not relax for smaller commits, follow-up commits, or late-session work — the second commit of a session gets the same scrutiny as the first.
+
+Standard four-step sequence:
+
+    git add <specific files>          # gate 1
+    git commit -F /tmp/commit-msg.txt # gate 2
+    git push origin main              # gate 3
+    git rev-parse HEAD origin/main    # verify (read-only, no gate)
+
+Never collapse into a chained gate. Chaining `commit && push` or `add && commit && push` hides each step's output from the reviewer mid-execution and defeats the per-step review contract.
+
+### 1.8 Permission-dialog redirect protocol
+
+Permission dialogs in Claude Code are deny/allow only. To redirect or query the agent mid-execution, deny the dialog first to return control to the main input, then send text guidance there. Never type instructions while a dialog is the active modal — they do not land on the agent.
+
+Deny is not rejection of the work; it is a signal to revise. A deny-plus-guidance sequence is a course correction, not a setback.
+
+### 1.9 Parser-clean chain rule
+
+The chained-command rule extends beyond parser warnings (the `&` backgrounding case in §1.3). A single permission gate covering multiple consequential operations — file mutations, network actions, irreversible state changes — must be denied even if the chain parses cleanly. The test is not "does the dialog warn" but "how many things would I be approving with one click."
+
+Read-only commands chained with one consequential command are fine. `git add x && git status` bundles one staging action with one read — acceptable. `git commit && git push` or `write-file && git-add && git-commit` crosses the line — each consequential step gets its own gate.
+
+### 1.10 Handoff commit gate compression
+
+Handoff commits are subject-only. The handoff doc itself is the body — the commit message does not duplicate it. Use `git commit -m "docs(handoff): YYYY-MM-DD HH:MM [role] — [brief-closeout-tag]"` directly; skip the `printf` + `wc -l` + `-F` pattern from §1.1.
+
+This is the only targeted relaxation of §1.1. It applies only to `docs(handoff):` commits containing a fresh handoff doc in `handoffs/`. All other commits still use the §1.1 pattern.
+
+Additionally, handoff commits may bundle write + git add + commit + push into a single permission gate, in narrow contravention of §1.7. The §1.7 invariance rule applies to consequential operations affecting running systems; handoff doc commits affect nothing in production. The chain rule's spirit (§1.9) is "how many things break if this approval is wrong" — for doc-only operations on doc-only files, the answer is nothing, so a single gate is correct.
