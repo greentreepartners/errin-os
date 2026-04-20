@@ -94,15 +94,6 @@ They communicate via the brain (Supabase + Markdown). No direct messaging.
 
 ---
 
-*D11 added April 2026 — execution surface unblocked, Phase 1 ready to start.*
-
-
-
-
-
-
----
-
 ## Open questions deferred (not blockers)
 
 These don't block Phase 0 or Phase 1. Resolve when relevant.
