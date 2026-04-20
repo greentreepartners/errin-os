@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { MOTION_ORDER, type Project, type Task } from "@/lib/types";
+import { statusPillClasses } from "@/lib/task-status";
 
 export const dynamic = "force-dynamic";
 
@@ -9,24 +10,22 @@ const BUILD_COMMIT =
   "local-dev";
 
 function TaskCard({ task }: { task: Task }) {
-  const borderStyle =
-    task.visibility === "public" ? "border-solid" : "border-dashed";
-
   const visibleBlockers = (task.blocked_by ?? [])
     .map((b) => b.blocking_task?.short_id)
     .filter((s): s is string => Boolean(s));
 
   return (
     <article
-      className={`relative border ${borderStyle} border-rule bg-bg-card px-4 pt-8 pb-4`}
+      style={{
+        borderStyle: task.visibility === "public" ? "solid" : "dashed",
+      }}
+      className="relative border border-rule bg-bg-card px-4 pt-8 pb-4"
     >
       <span className="absolute top-2 right-2 border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
         {task.visibility === "public" ? "PUBLIC" : "PRIVATE"}
       </span>
 
       <div className="flex items-start gap-3">
-        <input type="checkbox" disabled className="mt-1" />
-
         <div className="flex-1">
           <div className="flex items-baseline gap-2">
             {task.short_id && (
@@ -34,11 +33,11 @@ function TaskCard({ task }: { task: Task }) {
                 {task.short_id}
               </span>
             )}
-            {task.status === "in_progress" && (
-              <span className="border border-solid border-accent-line bg-accent-soft px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-accent">
-                in progress
-              </span>
-            )}
+            <span
+              className={`border border-solid px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider ${statusPillClasses(task.status, { interactive: false })}`}
+            >
+              {task.status.replace("_", " ")}
+            </span>
             <h3 className="font-sans font-semibold text-text">{task.title}</h3>
           </div>
 
