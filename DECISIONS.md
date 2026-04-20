@@ -54,8 +54,42 @@ A personal operating system. Supabase (Postgres) is the task database. Markdown 
 **Rationale:** Different jobs deserve different surfaces. Public view optimised for "recruiter clicks a link." Admin view optimised for "Errin manages tasks on his phone." Trying to do both in one UI would compromise both.
 
 ### D8 — Aesthetic baseline
-**Decision:** Visual language is `execution-co.netlify.app`. Black on cream. Bold typography. Flat surfaces. No gradients. No glow. No fintech energy.
-**View pattern:** The "Talent Agent" view Errin built in chat is the template — gate banner at top, stat row, legend, filter pills, then sections (Gate → Motion A → Motion B → Motion C for Career), cards with checkbox + ID + title + one-line operating note + right-aligned badge stack (horizon, effort, impact).
+**Decision:** Visual language is `execution-co.netlify.app`. The dashboard adopts the same dialect — same fonts, same palette, same structural patterns — adapted for operational density rather than narrative reading.
+
+**Foundational palette:**
+- Near-black background (~#0a0a0a or similar — match `execution-co` exactly, do not approximate)
+- White/off-white body text (high contrast, slight warmth permitted to avoid clinical feel)
+- Electric cyan accent (~#7ddfee — match `execution-co` exactly) used for navigational + emphatic semantic work only
+
+**Cyan semantic rule:** Cyan marks "where attention should be right now." On the dashboard this maps to two specific uses, and nothing else:
+- Active filter pill selection
+- `in_progress` task status badge
+
+No other element uses cyan. That restriction is what protects the meaning. Other states use other colours per the existing badge/border conventions (red for blocked/urgent, amber for warning, green for done, etc.).
+
+**Typography — three-font stack ported in full:**
+- Serif (italic for emphasis) — project section headings, inline rhetorical emphasis. Match `execution-co`'s serif choice.
+- Sans-serif — task titles, descriptions, all body content. Match `execution-co`'s sans choice.
+- Monospace — task short_ids (A1, B3, G1), badges, section numbers, footer commit hash. Marks "structured/categorical/system" content vs prose.
+
+Dashboard density adjusts via spacing and sizing — never by reducing the font stack. The three-font discipline is what creates the editorial feel.
+
+**Section-numbered headers ("01 · CAREER"):** Port from `execution-co` to dashboard project-level sections only:
+- `01 · CAREER`
+- `02 · NAMECOACH`
+- `03 · LIFE`
+
+Motion subsections within Career retain existing A/B/C labelling pattern (`Gate · Anonymisation must ship first`, `Motion A · Inbound from the site`, etc.) — no double-numbering.
+
+**What the dashboard MUST NOT look like:**
+- Any AI-generated SaaS dashboard template (Metronic, Tailwind UI Admin, etc.)
+- A fintech homepage
+- Anything with gradients, mesh backgrounds, or glow effects
+- A Linear export or Notion clone
+
+**View pattern:** The "Talent Agent" view Errin built in chat remains the structural template — gate banner at top when active, stat row, legend, filter pills, then sections with cards inside. Cards: checkbox + short_id (mono) + title (sans) + one-line operating note (sans, italic permitted) + dependency pill if blocked + right-aligned badge stack (horizon, effort, impact in mono).
+
+**Trade-off accepted:** The original D8 wording ("black on cream") was wrong — `execution-co` is white on near-black. Polarity reversed in the original draft, caught at Brief 2A-2 reconciliation. The decision to align with `execution-co` stands; only the description corrected.
 
 ### D9 — Three Claude projects, three altitudes
 **Decision:**
