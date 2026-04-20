@@ -11,7 +11,6 @@ canonical_docs:
   - VISIBILITY.md
   - SCHEMA.sql
   - PHASE_0_CHECKLIST.md
-  - GSTACK_PM_INSTRUCTIONS.md
 successor_must_read:
   - DECISIONS.md
   - VISIBILITY.md
@@ -33,7 +32,7 @@ This file is read by the `handoff` skill at the end of every chat in any errin-o
 
 **Role-specific successor reads (handled by each chat's system prompt):**
 - Strategy: `GSTACK_CEO_INSTRUCTIONS.md` (in project knowledge, not repo)
-- Delivery: `GSTACK_PM_INSTRUCTIONS.md` (in repo + project knowledge)
+- Delivery: `GSTACK_PM_INSTRUCTIONS.md` (in project knowledge)
 - Daily Ops: TBD when set up
 
 **Handoff convention:**
