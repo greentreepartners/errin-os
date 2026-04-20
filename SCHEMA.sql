@@ -198,7 +198,7 @@ create policy "authed writes deps"
   with check (true);
 
 -- ============================================================================
--- SEED DATA — 3 projects, 6 sample tasks
+-- SEED DATA — 3 projects, 7 sample tasks
 -- ============================================================================
 -- These are deliberately fake. Each task is designed to exercise a specific
 -- schema feature so we can verify the dashboard renders all states correctly.
@@ -225,6 +225,13 @@ select id, 'G1', 'Sample task B — private, done, gate item',
   'Tests: visibility=private + status=done (sets completed_at) + is_gate=true',
   'gate',
   'done', 'private', 'high', 'high', 'this_week', true
+from projects where slug = 'career';
+
+insert into tasks (project_id, short_id, title, description, motion, motion_subtitle, status, visibility, effort, impact, horizon, is_gate)
+select id, 'B1', 'Sample task G — public, motion B, layout signal',
+  'Tests: motion_b rendering — proves multi-motion section nesting works',
+  'motion_b', 'Active · direct effort · medium quality',
+  'this_week', 'public', 'low', 'medium', 'this_week', false
 from projects where slug = 'career';
 
 insert into tasks (project_id, short_id, title, description, status, visibility, effort, impact, horizon, is_gate)
