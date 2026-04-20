@@ -1,12 +1,8 @@
-import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { MOTION_ORDER, type Project, type Task } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const BUILT_AT = new Date().toISOString();
-const BUILD_COMMIT =
-  (process.env.COMMIT_REF || process.env.NETLIFY_COMMIT_REF)?.slice(0, 7) ??
-  "local-dev";
 
 function TaskCard({ task }: { task: Task }) {
   const borderStyle =
@@ -54,6 +50,9 @@ function TaskCard({ task }: { task: Task }) {
         </div>
 
         <div className="flex flex-col items-end gap-1 text-[10px] text-text-3">
+          <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
+            {task.status.replace("_", " ")}
+          </span>
           {task.horizon && (
             <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               {task.horizon}
@@ -75,7 +74,16 @@ function TaskCard({ task }: { task: Task }) {
   );
 }
 
-export default async function Home() {
+export default async function AdminHome() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!user || !adminEmail || user.email !== adminEmail) {
+    redirect("/admin/login");
+  }
+
   const { data, error } = await supabase
     .from("projects")
     .select(
@@ -94,85 +102,32 @@ export default async function Home() {
 
   const projects = (data ?? []) as unknown as Project[];
   const tasks = projects.flatMap((p) => p.tasks ?? []);
-
-  const stats = {
-    total: tasks.length,
-    this_week: tasks.filter((t) => t.status === "this_week").length,
-    in_progress: tasks.filter((t) => t.status === "in_progress").length,
-    done: tasks.filter((t) => t.status === "done").length,
-    blocked: tasks.filter((t) => t.status === "blocked").length,
-  };
+  const privateCount = tasks.filter((t) => t.visibility === "private").length;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 font-sans text-sm text-text bg-bg">
+    <main className="mx-auto w-full max-w-3xl px-6 py-8 font-sans text-sm text-text bg-bg">
       {error && (
-        <section className="mb-6 border border-solid border-red-700 bg-red-50 p-4 text-red-900">
+        <section className="mb-6 border border-solid border-red-700 bg-red-950 p-4 text-red-200">
           <h2 className="font-semibold">Supabase query error</h2>
           <p className="mt-1">{error.message}</p>
           {error.code && <p className="mt-1">Code: {error.code}</p>}
-          <p className="mt-2 text-xs">
-            Rendered server-side — visible in any browser regardless of console access.
-          </p>
         </section>
       )}
 
       <header className="flex flex-wrap gap-x-6 gap-y-1 border border-solid border-rule p-4 text-text-2">
         <span>
-          <span className="font-mono text-text">{stats.total}</span> total
+          <span className="font-mono text-text">{tasks.length}</span> total
         </span>
         <span>
-          <span className="font-mono text-text">{stats.this_week}</span> this week
+          <span className="font-mono text-text">
+            {tasks.length - privateCount}
+          </span>{" "}
+          public
         </span>
         <span>
-          <span className="font-mono text-text">{stats.in_progress}</span> in progress
-        </span>
-        <span>
-          <span className="font-mono text-text">{stats.done}</span> done
-        </span>
-        <span>
-          <span className="font-mono text-text">{stats.blocked}</span> blocked
+          <span className="font-mono text-text">{privateCount}</span> private
         </span>
       </header>
-
-      <section className="mt-4 grid grid-cols-3 gap-4 border border-solid border-rule-soft p-4 text-xs text-text-3">
-        <div>
-          <p className="font-semibold text-text">Horizon</p>
-          <ul className="mt-1">
-            <li>this_week</li>
-            <li>next_2_weeks</li>
-            <li>ongoing</li>
-          </ul>
-        </div>
-        <div>
-          <p className="font-semibold text-text">Effort</p>
-          <ul className="mt-1">
-            <li>low</li>
-            <li>medium</li>
-            <li>high</li>
-          </ul>
-        </div>
-        <div>
-          <p className="font-semibold text-text">Impact</p>
-          <ul className="mt-1">
-            <li>low</li>
-            <li>medium</li>
-            <li>high</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Pill interactivity lands in a later brief — see Brief 2A-1 scope */}
-      <nav className="mt-4 flex flex-wrap gap-2">
-        {["All", "This Week", "In Progress", "Blocked", "Done"].map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="border border-solid border-text px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-text"
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
 
       <div className="mt-8 space-y-8">
         {projects.map((project) => {
@@ -184,6 +139,9 @@ export default async function Home() {
               <span className="font-mono text-text-3">{projectNum} ·</span>
               <span className="font-sans text-lg font-semibold uppercase tracking-wide text-text">
                 {project.name}
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-text-3">
+                {project.visibility}
               </span>
             </h2>
           );
@@ -228,17 +186,6 @@ export default async function Home() {
           );
         })}
       </div>
-
-      <footer className="mt-12 text-xs text-text-3">
-        <p>
-          Build commit:{" "}
-          <span className="font-mono text-text-2">{BUILD_COMMIT}</span>
-        </p>
-        <p>Built: {BUILT_AT}</p>
-        <p>
-          Showing 4 of 4 public tasks. Private task count visible in admin view.
-        </p>
-      </footer>
     </main>
   );
 }
