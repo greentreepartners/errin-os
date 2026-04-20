@@ -69,6 +69,38 @@ They communicate via the brain (Supabase + Markdown). No direct messaging.
 **Decision:** Build the pipeline with deliberately fake sample tasks (6 across 3 projects, each exercising a specific schema feature). Migrate real task inventory only after the read+write+display pipeline is proven end-to-end.
 **Rationale:** Reconciling the real task list (which is currently stale in the context doc and accurate only in screenshots) is a separate concern from proving the data layer. Don't conflate them.
 
+
+### D11 — Claude Code in the desktop app as the execution surface
+
+**Decision:** All build work for errin-os happens in **Claude Code inside the Claude desktop app** (the Code tab), not Cursor, not the standalone CLI as primary, not Cowork.
+
+**Rationale:**
+- Replicates the Cursor Plan/Agent workflow via Plan Mode (Shift+Tab twice) — read-only scoping phase before execution, with editable plan artifact, structurally equivalent to Cursor's Plan pane even though it's a mode toggle rather than a literal pane split.
+- Single-app surface for the whole project: Strategy chat, PM chat, and building all live in the same Claude desktop window in different tabs. Less context-switching, cleaner mental model.
+- Mobile Dispatch supported — start a task on phone, complete on desktop. Useful for the "mark a task done from anywhere" pattern.
+- Stronger portfolio story: Claude ecosystem end-to-end, no third-party IDE in the credit line. Reinforces the AI-First PM positioning.
+- CLI remains available for terminal-native work via `/desktop` handoff. Not blocked from dropping to CLI when needed.
+
+**Rejected alternatives:**
+- **Cursor:** Plan/Agent panes are excellent, but using a non-Anthropic tool dilutes the "I run my work inside the Claude ecosystem" portfolio claim that the dashboard itself is meant to demonstrate.
+- **Claude Code CLI as primary:** Identical capability, but loses the visual surface (server preview, diff review, PR status) that the desktop app provides. Available as fallback via `/desktop`.
+- **Cowork:** Built for non-coding knowledge work (file organisation, report drafting). Anthropic's own positioning excludes engineering use cases. Wrong tool.
+
+**Trade-offs accepted:**
+- No literal side-by-side panes — Plan and execution share the surface, separated by mode rather than layout. Acceptable since Errin vibe-directs rather than hand-editing code.
+- No IDE features (multi-cursor, language server polish, etc.). Not relevant for this build.
+
+**Operational note for the PM project:** Plan Mode is the default for any non-trivial change. Single-sentence diffs (rename a variable, fix a typo) skip Plan. Anything touching multiple files, anything modifying schema, anything involving the auth flow — Plan Mode first, review the plan, then execute.
+
+---
+
+*D11 added April 2026 — execution surface unblocked, Phase 1 ready to start.*
+
+
+
+
+
+
 ---
 
 ## Open questions deferred (not blockers)
