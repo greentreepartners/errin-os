@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #1c1f22;
+  --bg-raised: #22262a;
+  --bg-card: #272b30;
+  --bg-deep: #16181b;
+  --text: #f5f7f9;
+  --text-2: #c9cfd5;
+  --text-3: #8a9199;
+  --text-4: #5a6069;
+  --rule: #34383d;
+  --rule-soft: #2a2e32;
+  --accent: #00d4ff;
+  --accent-hot: #00e8ff;
+  --accent-soft: rgba(0, 212, 255, 0.08);
+  --accent-line: rgba(0, 212, 255, 0.3);
+  --accent-glow: rgba(0, 212, 255, 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-card: var(--bg-card);
+  --color-bg-deep: var(--bg-deep);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-text-4: var(--text-4);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-accent: var(--accent);
+  --color-accent-hot: var(--accent-hot);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-accent-glow: var(--accent-glow);
   --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-fraunces);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }

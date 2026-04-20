@@ -3,7 +3,9 @@ import { supabase } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 const BUILT_AT = new Date().toISOString();
-const BUILD_COMMIT = process.env.COMMIT_REF?.slice(0, 7) ?? "local-dev";
+const BUILD_COMMIT =
+  (process.env.COMMIT_REF || process.env.NETLIFY_COMMIT_REF)?.slice(0, 7) ??
+  "local-dev";
 
 type Visibility = "public" | "private";
 
@@ -65,9 +67,9 @@ function TaskCard({ task }: { task: Task }) {
 
   return (
     <article
-      className={`relative border ${borderStyle} border-zinc-900 px-4 pt-8 pb-4`}
+      className={`relative border ${borderStyle} border-rule bg-bg-card px-4 pt-8 pb-4`}
     >
-      <span className="absolute top-2 right-2 border border-solid border-zinc-900 px-2 py-0.5 text-[10px] font-mono">
+      <span className="absolute top-2 right-2 border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
         {task.visibility === "public" ? "PUBLIC" : "PRIVATE"}
       </span>
 
@@ -77,37 +79,42 @@ function TaskCard({ task }: { task: Task }) {
         <div className="flex-1">
           <div className="flex items-baseline gap-2">
             {task.short_id && (
-              <span className="font-mono text-xs text-zinc-600">
+              <span className="font-mono text-xs text-text-3">
                 {task.short_id}
               </span>
             )}
-            <h3 className="font-semibold">{task.title}</h3>
+            {task.status === "in_progress" && (
+              <span className="border border-solid border-accent-line bg-accent-soft px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-accent">
+                in progress
+              </span>
+            )}
+            <h3 className="font-sans font-semibold text-text">{task.title}</h3>
           </div>
 
           {task.description && (
-            <p className="mt-1 text-xs text-zinc-600">{task.description}</p>
+            <p className="mt-1 text-xs text-text-2">{task.description}</p>
           )}
 
           {visibleBlockers.length > 0 && (
-            <p className="mt-2 inline-block border border-solid border-zinc-400 px-2 py-0.5 text-[10px] text-zinc-700">
+            <p className="mt-2 inline-block border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
               Blocked by {visibleBlockers.join(", ")}
             </p>
           )}
         </div>
 
-        <div className="flex flex-col items-end gap-1 text-[10px] text-zinc-700">
+        <div className="flex flex-col items-end gap-1 text-[10px] text-text-3">
           {task.horizon && (
-            <span className="border border-solid border-zinc-400 px-2 py-0.5">
+            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               {task.horizon}
             </span>
           )}
           {task.effort && (
-            <span className="border border-solid border-zinc-400 px-2 py-0.5">
+            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               effort: {task.effort}
             </span>
           )}
           {task.impact && (
-            <span className="border border-solid border-zinc-400 px-2 py-0.5">
+            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               impact: {task.impact}
             </span>
           )}
@@ -146,7 +153,7 @@ export default async function Home() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 font-sans text-sm">
+    <main className="mx-auto w-full max-w-3xl px-6 py-12 font-sans text-sm text-text bg-bg">
       {error && (
         <section className="mb-6 border border-solid border-red-700 bg-red-50 p-4 text-red-900">
           <h2 className="font-semibold">Supabase query error</h2>
@@ -158,44 +165,44 @@ export default async function Home() {
         </section>
       )}
 
-      <header className="flex flex-wrap gap-x-6 gap-y-1 border border-solid border-zinc-900 p-4">
+      <header className="flex flex-wrap gap-x-6 gap-y-1 border border-solid border-rule p-4 text-text-2">
         <span>
-          <span className="font-mono">{stats.total}</span> total
+          <span className="font-mono text-text">{stats.total}</span> total
         </span>
         <span>
-          <span className="font-mono">{stats.this_week}</span> this week
+          <span className="font-mono text-text">{stats.this_week}</span> this week
         </span>
         <span>
-          <span className="font-mono">{stats.in_progress}</span> in progress
+          <span className="font-mono text-text">{stats.in_progress}</span> in progress
         </span>
         <span>
-          <span className="font-mono">{stats.done}</span> done
+          <span className="font-mono text-text">{stats.done}</span> done
         </span>
         <span>
-          <span className="font-mono">{stats.blocked}</span> blocked
+          <span className="font-mono text-text">{stats.blocked}</span> blocked
         </span>
       </header>
 
-      <section className="mt-4 grid grid-cols-3 gap-4 border border-solid border-zinc-300 p-4 text-xs">
+      <section className="mt-4 grid grid-cols-3 gap-4 border border-solid border-rule-soft p-4 text-xs text-text-3">
         <div>
-          <p className="font-semibold">Horizon</p>
-          <ul className="mt-1 text-zinc-700">
+          <p className="font-semibold text-text">Horizon</p>
+          <ul className="mt-1">
             <li>this_week</li>
             <li>next_2_weeks</li>
             <li>ongoing</li>
           </ul>
         </div>
         <div>
-          <p className="font-semibold">Effort</p>
-          <ul className="mt-1 text-zinc-700">
+          <p className="font-semibold text-text">Effort</p>
+          <ul className="mt-1">
             <li>low</li>
             <li>medium</li>
             <li>high</li>
           </ul>
         </div>
         <div>
-          <p className="font-semibold">Impact</p>
-          <ul className="mt-1 text-zinc-700">
+          <p className="font-semibold text-text">Impact</p>
+          <ul className="mt-1">
             <li>low</li>
             <li>medium</li>
             <li>high</li>
@@ -209,7 +216,7 @@ export default async function Home() {
           <button
             key={label}
             type="button"
-            className="border border-solid border-zinc-900 px-3 py-1 text-xs"
+            className="border border-solid border-text px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-text"
           >
             {label}
           </button>
@@ -219,11 +226,21 @@ export default async function Home() {
       <div className="mt-8 space-y-8">
         {projects.map((project) => {
           const projectTasks = project.tasks ?? [];
+          const projectNum = String(project.display_order).padStart(2, "0");
+
+          const heading = (
+            <h2 className="flex items-baseline gap-2">
+              <span className="font-mono text-text-3">{projectNum} ·</span>
+              <span className="font-sans text-lg font-semibold uppercase tracking-wide text-text">
+                {project.name}
+              </span>
+            </h2>
+          );
 
           if (project.slug === "career") {
             return (
               <section key={project.id}>
-                <h2 className="text-lg font-semibold">{project.name}</h2>
+                {heading}
                 <div className="mt-3 space-y-6">
                   {MOTION_ORDER.map(({ key, label }) => {
                     const subset = projectTasks.filter(
@@ -232,7 +249,7 @@ export default async function Home() {
                     if (subset.length === 0) return null;
                     return (
                       <div key={key}>
-                        <h3 className="text-sm font-semibold text-zinc-700">
+                        <h3 className="text-sm font-semibold text-text-2">
                           {label}
                         </h3>
                         <div className="mt-2 space-y-3">
@@ -250,7 +267,7 @@ export default async function Home() {
 
           return (
             <section key={project.id}>
-              <h2 className="text-lg font-semibold">{project.name}</h2>
+              {heading}
               <div className="mt-3 space-y-3">
                 {projectTasks.map((task) => (
                   <TaskCard key={task.id} task={task} />
@@ -261,8 +278,11 @@ export default async function Home() {
         })}
       </div>
 
-      <footer className="mt-12 text-xs text-zinc-500">
-        <p>Build commit: {BUILD_COMMIT}</p>
+      <footer className="mt-12 text-xs text-text-3">
+        <p>
+          Build commit:{" "}
+          <span className="font-mono text-text-2">{BUILD_COMMIT}</span>
+        </p>
         <p>Built: {BUILT_AT}</p>
         <p>
           Showing 4 of 4 public tasks. Private task count visible in admin view.
