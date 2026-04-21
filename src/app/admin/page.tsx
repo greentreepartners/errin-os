@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { MOTION_ORDER, type Project } from "@/lib/types";
-import { AdminTaskCard } from "./_components/AdminTaskCard";
+import { type Project } from "@/lib/types";
 import { AddTaskForm } from "./_components/AddTaskForm";
+import { AdminTaskFilter } from "./_components/AdminTaskFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -70,79 +70,7 @@ export default async function AdminHome() {
         <AddTaskForm projects={projectOptions} />
       </div>
 
-      <div className="mt-8 space-y-8">
-        {projects.map((project) => {
-          const projectTasks = project.tasks ?? [];
-          const projectNum = String(project.display_order).padStart(2, "0");
-
-          const heading = (
-            <h2 className="flex items-baseline gap-2">
-              <span className="font-mono text-text-3">{projectNum} ·</span>
-              <span className="font-sans text-lg font-semibold uppercase tracking-wide text-text">
-                {project.name}
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-3">
-                {project.visibility}
-              </span>
-            </h2>
-          );
-
-          if (project.slug === "career") {
-            const orderedKeys = MOTION_ORDER.map((m) => m.key);
-            const unmotioned = projectTasks.filter(
-              (t) => !t.motion || !orderedKeys.includes(t.motion)
-            );
-            return (
-              <section key={project.id}>
-                {heading}
-                <div className="mt-3 space-y-6">
-                  {MOTION_ORDER.map(({ key, label }) => {
-                    const subset = projectTasks.filter(
-                      (t) => t.motion === key
-                    );
-                    if (subset.length === 0) return null;
-                    return (
-                      <div key={key}>
-                        <h3 className="text-sm font-semibold text-text-2">
-                          {label}
-                        </h3>
-                        <div className="mt-2 space-y-3">
-                          {subset.map((task) => (
-                            <AdminTaskCard key={task.id} task={task} />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {unmotioned.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-text-2">
-                        Unassigned
-                      </h3>
-                      <div className="mt-2 space-y-3">
-                        {unmotioned.map((task) => (
-                          <AdminTaskCard key={task.id} task={task} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-            );
-          }
-
-          return (
-            <section key={project.id}>
-              {heading}
-              <div className="mt-3 space-y-3">
-                {projectTasks.map((task) => (
-                  <AdminTaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+      <AdminTaskFilter projects={projects} projectOptions={projectOptions} />
     </main>
   );
 }

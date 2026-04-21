@@ -8,6 +8,7 @@ import {
   type TaskStatus,
 } from "@/lib/types";
 import { statusPillClasses } from "@/lib/task-status";
+import { INACTIVE_PILL, ACTIVE_PILL } from "@/lib/filter-pill";
 
 type FilterStatus = TaskStatus | null;
 
@@ -18,11 +19,6 @@ const PILLS: Array<{ label: string; status: FilterStatus }> = [
   { label: "Blocked", status: "blocked" },
   { label: "Done", status: "done" },
 ];
-
-const INACTIVE_PILL =
-  "border border-solid border-text px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-text";
-const ACTIVE_PILL =
-  "border border-solid border-accent-line bg-accent-soft px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-accent hover:bg-accent-glow";
 
 function TaskCard({ task }: { task: Task }) {
   const visibleBlockers = (task.blocked_by ?? [])
