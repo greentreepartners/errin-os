@@ -138,3 +138,29 @@ Handoff commits are subject-only. The handoff doc itself is the body — the com
 This is the only targeted relaxation of §1.1. It applies only to `docs(handoff):` commits containing a fresh handoff doc in `handoffs/`. All other commits still use the §1.1 pattern.
 
 Additionally, handoff commits may bundle write + git add + commit + push into a single permission gate, in narrow contravention of §1.7. The §1.7 invariance rule applies to consequential operations affecting running systems; handoff doc commits affect nothing in production. The chain rule's spirit (§1.9) is "how many things break if this approval is wrong" — for doc-only operations on doc-only files, the answer is nothing, so a single gate is correct.
+
+### 1.11 Plan-scoped permission prompts after APPROVED
+
+Once the operator replies `APPROVED` on a Plan Mode artifact, the delivery chat should proactively tell the operator which permission prompts during execution are safe to `Always allow` and which should remain `Allow once`.
+
+The plan is the gate. Per-edit prompting after plan approval is friction without signal for edits and commands named in the plan. But "Always allow" in Claude Code persists for the session and matches on command shape, not on this specific invocation — so the relaxation applies only to in-scope operations, not to the shape of the command.
+
+Default table:
+
+| Prompt type | Treatment |
+|---|---|
+| Edits to files named in the plan | Always allow |
+| Build / lint / type-check commands named in the plan | Always allow |
+| `git add <files-in-plan>` | Always allow |
+| `git commit -F <tmp-msg>` | **Allow once** — commits are semantic actions, each one merits conscious approval |
+| `git push origin <branch-in-plan>` | **Allow once** — pushes ship to deployment targets; never auto-pass |
+| Dev server startup, background processes, PID capture | **Allow once** — one-shot verification, not recurring |
+| `rm -f`, temp file cleanup | **Allow once** — command shape matches future contexts |
+| `curl localhost`, `grep`, read-only verification | **Allow once** — cheap per-prompt, keeps eyes on output |
+| Files or surfaces **not named in the plan** | **Deny and flag** — scope drift, not routine execution |
+| `.env`, migrations, new dependencies, auth flow | **Deny and flag** — always re-plan before touching |
+| Network calls to external services not in plan | **Deny and flag** |
+
+[HARD] `git commit` and `git push` never go `Always allow`. The per-step gate invariance of §1.7 is not relaxed by plan approval — plan approval gates the *work*, not the individual semantic git actions. This also holds when Claude Code offers an "Always allow" button: the correct answer is still `Allow once`.
+
+If Claude Code attempts to edit a file or run a command not covered by the plan, deny the prompt and flag to the operator. That's a scope-drift signal, not a routine edit — re-plan before proceeding.
