@@ -114,13 +114,15 @@ export function AdminTaskCard({ task }: { task: Task }) {
     .map((b) => b.blocking_task?.short_id)
     .filter((s): s is string => Boolean(s));
 
+  // Horizon, effort, and impact are display-only — edits route through the admin form.
+  // Visibility (top-right) is a one-click toggle; status (top row) is a one-click cycle.
   return (
     <article
       style={{
         borderStyle:
           optimisticTask.visibility === "public" ? "solid" : "dashed",
       }}
-      className={`relative border border-rule bg-bg-card px-4 pt-8 pb-4 ${isPending ? "opacity-70" : ""}`}
+      className={`relative border border-rule bg-bg-card px-3 pt-8 pb-3 ${isPending ? "opacity-70" : ""}`}
     >
       <button
         type="button"
@@ -131,93 +133,93 @@ export function AdminTaskCard({ task }: { task: Task }) {
         {optimisticTask.visibility === "public" ? "PUBLIC" : "PRIVATE"}
       </button>
 
-      <div className="flex items-start gap-3">
-        <div className="flex-1">
-          <div className="flex items-baseline gap-2">
-            {optimisticTask.short_id && (
-              <span className="font-mono text-xs text-text-3">
-                {optimisticTask.short_id}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={cycleTaskStatus}
-              aria-label="Cycle status"
-              className={`cursor-pointer border border-solid px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider transition-colors ${statusPillClasses(optimisticTask.status, { interactive: true })}`}
-            >
-              {optimisticTask.status.replace("_", " ")}
-            </button>
-            {editingField === "title" ? (
-              <input
-                ref={inputRef}
-                type="text"
-                value={fieldValue}
-                onChange={(e) => setFieldValue(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    commitEdit();
-                  } else if (e.key === "Escape") {
-                    e.preventDefault();
-                    cancelEdit();
-                  }
-                }}
-                className="flex-1 border border-solid border-accent bg-bg-card px-1 font-sans font-semibold text-text"
-              />
-            ) : (
-              <h3
-                onClick={() => beginEdit("title")}
-                className="cursor-text font-sans font-semibold text-text hover:underline"
-              >
-                {optimisticTask.title}
-              </h3>
-            )}
-          </div>
+      <div className="flex items-baseline gap-2">
+        {optimisticTask.short_id && (
+          <span className="font-mono text-xs text-text-3">
+            {optimisticTask.short_id}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={cycleTaskStatus}
+          aria-label="Cycle status"
+          className={`cursor-pointer border border-solid px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider transition-colors ${statusPillClasses(optimisticTask.status, { interactive: true })}`}
+        >
+          {optimisticTask.status.replace("_", " ")}
+        </button>
+        {editingField === "title" ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={fieldValue}
+            onChange={(e) => setFieldValue(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commitEdit();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                cancelEdit();
+              }
+            }}
+            className="flex-1 border border-solid border-accent bg-bg-card px-1 font-sans font-semibold text-text"
+          />
+        ) : (
+          <h3
+            onClick={() => beginEdit("title")}
+            className="cursor-text font-sans font-semibold text-text hover:underline"
+          >
+            {optimisticTask.title}
+          </h3>
+        )}
+      </div>
 
-          {editingField === "description" ? (
-            <textarea
-              ref={textareaRef}
-              value={fieldValue}
-              onChange={(e) => setFieldValue(e.target.value)}
-              onBlur={commitEdit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  commitEdit();
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  cancelEdit();
-                }
-              }}
-              rows={2}
-              className="mt-1 w-full border border-solid border-accent bg-bg-card px-1 text-xs text-text-2"
-            />
-          ) : (
-            <p
-              onClick={() => beginEdit("description")}
-              className="mt-1 cursor-text text-xs text-text-2 hover:underline"
-            >
-              {optimisticTask.description || (
-                <span className="italic text-text-4">add description…</span>
-              )}
-            </p>
+      {editingField === "description" ? (
+        <textarea
+          ref={textareaRef}
+          value={fieldValue}
+          onChange={(e) => setFieldValue(e.target.value)}
+          onBlur={commitEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              commitEdit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              cancelEdit();
+            }
+          }}
+          rows={2}
+          className="mt-1 w-full border border-solid border-accent bg-bg-card px-1 text-xs text-text-2"
+        />
+      ) : (
+        <p
+          onClick={() => beginEdit("description")}
+          className="mt-1 cursor-text text-xs text-text-2 hover:underline"
+        >
+          {optimisticTask.description || (
+            <span className="italic text-text-4">add description…</span>
           )}
+        </p>
+      )}
 
+      {error && (
+        <p className="mt-2 inline-block border border-solid border-red-700 bg-red-950 px-2 py-0.5 text-[10px] font-mono text-red-300">
+          error: {error}
+        </p>
+      )}
+
+      {(visibleBlockers.length > 0 ||
+        optimisticTask.horizon ||
+        optimisticTask.effort ||
+        optimisticTask.impact) && (
+        <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-text-3">
           {visibleBlockers.length > 0 && (
-            <p className="mt-2 inline-block border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
+            <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               Blocked by {visibleBlockers.join(", ")}
-            </p>
+            </span>
           )}
-
-          {error && (
-            <p className="mt-2 inline-block border border-solid border-red-700 bg-red-950 px-2 py-0.5 text-[10px] font-mono text-red-300">
-              error: {error}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col items-end gap-1 text-[10px] text-text-3">
           {optimisticTask.horizon && (
             <span className="border border-solid border-rule px-2 py-0.5 font-mono uppercase tracking-wider">
               {optimisticTask.horizon}
@@ -234,7 +236,7 @@ export function AdminTaskCard({ task }: { task: Task }) {
             </span>
           )}
         </div>
-      </div>
+      )}
     </article>
   );
 }
