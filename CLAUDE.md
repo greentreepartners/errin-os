@@ -186,3 +186,53 @@ If Claude Code attempts to edit a file or run a command not covered by the plan,
 [HARD] The four-gate git sequence (§1.7) and the printf + wc -l + -F pattern (§1.1) are not relaxed by this exemption. Only the Plan Mode artifact is skipped — execution discipline remains identical.
 
 When in doubt, write the plan. The cost of an unnecessary plan is small; the cost of a missed architectural call is the rest of the session debugging it.
+
+### 1.13 RSC client-island pattern for interactive state over server-fetched data
+
+When a Next.js page uses top-level `await` for a server-side fetch (e.g. Supabase reads via the anon client or RPC), interactive state (`useState`, `onClick`, `onChange`) cannot be added in-place. A single `.tsx` file is either a Server Component or a Client Component — never both. Converting the whole page to `"use client"` to accommodate interactivity sacrifices the server-side fetch pattern and is the wrong move.
+
+**Correct pattern:** extract a client island.
+
+- Server Component page (`src/app/page.tsx`, `src/app/admin/page.tsx`): handles auth, data fetch, stats computation, error banner, static layout
+- Client island (`src/app/_components/TaskFilter.tsx`, `src/app/admin/_components/AdminTaskFilter.tsx`): `"use client"` directive, receives server-fetched data as prop, holds interactive state, renders the interactive subtree
+
+**Prop serialisability requirement.** Props crossing the RSC boundary must be serialisable — no `Date` objects, no functions, no class instances. Supabase JSON responses are safe by default; typed arrays of primitives and string unions pass cleanly.
+
+**Stats stay on the server.** "Whole-set truth" values (total count, public/private breakdown, etc.) compute from the unfiltered server-fetched set and render in the Server Component. They never cross the boundary. Filter state in the client island cannot contaminate them.
+
+**Naming convention.** Client islands live in a `_components/` folder nested inside the route folder that consumes them. The underscore prefix keeps the folder non-routable (Next.js convention). Example: `src/app/admin/_components/AdminTaskFilter.tsx` is consumed only by `src/app/admin/page.tsx`.
+
+First applied in Brief 2B-Fix-4; pattern-proven by successful reapplication in 2B-Fix-5.
+
+### 1.14 Shared class-string constants for D8 semantic rules
+
+When the same D8 visual treatment (cyan accent, active-filter state, a semantic border colour) must appear on two or more surfaces, extract the Tailwind class strings to a shared module rather than duplicating inline. Example: `src/lib/filter-pill.ts` holds the `INACTIVE_PILL` / `ACTIVE_PILL` class strings used by both `TaskFilter.tsx` (public) and `AdminTaskFilter.tsx` (admin).
+
+**Why this matters more than normal DRY.** Tailwind class strings are just strings — nothing stops a future edit to one surface from diverging from the other. D8's cyan-for-in-progress-and-active-filter rule is *semantic*; the class string is the contract. A shared module makes any future edit a module-level decision visible across both surfaces rather than silent drift.
+
+**Rule-of-three may trigger on two.** Extract on the second occurrence when the value is a canonical reference (the D8 cyan is *the* accent colour, not just *a* class that happens to match). Wait for the third occurrence for generic repeated strings.
+
+**Top-of-file comment on the shared module** should reference the governing decision:
+
+```ts
+// D8 cyan accent — shared between public and admin filter pills.
+// Edit both surfaces deliberately, not by accident.
+```
+
+First applied in Brief 2B-Fix-5.
+
+### 1.15 `grep -c` counts lines, not occurrences
+
+When verifying rendered HTML output with grep, `grep -c '<pattern'` counts *matching lines*, not *matching occurrences*. If multiple elements render on a single line (common in dev and production React output), the count is `1` for many elements and misleads verification.
+
+**Correct pattern for occurrence counts:**
+
+```bash
+grep -oE '<pattern' file | wc -l
+```
+
+`-o` prints each match on its own line; `-E` enables extended regex; piping to `wc -l` counts the matches. Use this form for all element-count verifications in smoke-test scripts. Reserve `grep -c` for line-count questions only.
+
+[HARD] Smoke-test scripts that count elements in rendered HTML never use `grep -c`. If a test is counting anything visual — cards, badges, pills, buttons — use `grep -oE | wc -l`.
+
+Caught mid-verification in Brief 2B-Fix-4 when card count returned `1` instead of `10`.
