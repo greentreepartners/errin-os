@@ -12,6 +12,9 @@ const VALID_STATUS: readonly TaskStatus[] = [
 ];
 const VALID_VISIBILITY: readonly Visibility[] = ["public", "private"];
 const VALID_MOTION = ["gate", "motion_a", "motion_b", "motion_c"] as const;
+const VALID_HORIZON = ["this_week", "next_2_weeks", "ongoing"] as const;
+const VALID_EFFORT = ["low", "medium", "high"] as const;
+const VALID_IMPACT = ["low", "medium", "high"] as const;
 
 function isStatus(s: unknown): s is TaskStatus {
   return typeof s === "string" && (VALID_STATUS as readonly string[]).includes(s);
@@ -23,6 +26,15 @@ function isVisibility(s: unknown): s is Visibility {
 }
 function isMotion(s: unknown): s is (typeof VALID_MOTION)[number] {
   return typeof s === "string" && (VALID_MOTION as readonly string[]).includes(s);
+}
+function isHorizon(s: unknown): s is (typeof VALID_HORIZON)[number] {
+  return typeof s === "string" && (VALID_HORIZON as readonly string[]).includes(s);
+}
+function isEffort(s: unknown): s is (typeof VALID_EFFORT)[number] {
+  return typeof s === "string" && (VALID_EFFORT as readonly string[]).includes(s);
+}
+function isImpact(s: unknown): s is (typeof VALID_IMPACT)[number] {
+  return typeof s === "string" && (VALID_IMPACT as readonly string[]).includes(s);
 }
 
 export async function POST(request: NextRequest) {
@@ -67,16 +79,29 @@ export async function POST(request: NextRequest) {
     typeof raw.description === "string" && raw.description.trim()
       ? raw.description
       : null;
+  const short_id =
+    typeof raw.short_id === "string" && raw.short_id.trim()
+      ? raw.short_id.trim()
+      : null;
+  const horizon = isHorizon(raw.horizon) ? raw.horizon : null;
+  const effort = isEffort(raw.effort) ? raw.effort : null;
+  const impact = isImpact(raw.impact) ? raw.impact : null;
+  const is_gate = typeof raw.is_gate === "boolean" ? raw.is_gate : false;
 
   const { data, error } = await supabase
     .from("tasks")
     .insert({
       project_id,
       title,
+      short_id,
       description,
       motion,
       status,
       visibility,
+      horizon,
+      effort,
+      impact,
+      is_gate,
     })
     .select()
     .single();
