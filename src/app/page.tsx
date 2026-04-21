@@ -75,10 +75,11 @@ function TaskCard({ task }: { task: Task }) {
 }
 
 export default async function Home() {
-  const { data, error } = await supabase
-    .from("projects")
-    .select(
-      `
+  const [projectsResult, countsResult] = await Promise.all([
+    supabase
+      .from("projects")
+      .select(
+        `
       id, slug, name, display_order, visibility,
       tasks (
         id, short_id, title, description, motion, motion_subtitle,
@@ -88,8 +89,16 @@ export default async function Home() {
         )
       )
       `
-    )
-    .order("display_order");
+      )
+      .order("display_order"),
+    supabase.rpc("public_counts"),
+  ]);
+
+  const { data, error } = projectsResult;
+  const { data: countsData, error: countsError } = countsResult as {
+    data: { public_count: number; total_count: number } | null;
+    error: { message: string; code?: string } | null;
+  };
 
   const projects = (data ?? []) as unknown as Project[];
   const tasks = projects.flatMap((p) => p.tasks ?? []);
@@ -104,11 +113,12 @@ export default async function Home() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-12 font-sans text-sm text-text bg-bg">
-      {error && (
+      {(error || countsError) && (
         <section className="mb-6 border border-solid border-red-700 bg-red-50 p-4 text-red-900">
           <h2 className="font-semibold">Supabase query error</h2>
-          <p className="mt-1">{error.message}</p>
-          {error.code && <p className="mt-1">Code: {error.code}</p>}
+          {error && <p className="mt-1">{error.message}</p>}
+          {error?.code && <p className="mt-1">Code: {error.code}</p>}
+          {countsError && <p className="mt-1">{countsError.message}</p>}
           <p className="mt-2 text-xs">
             Rendered server-side — visible in any browser regardless of console access.
           </p>
@@ -235,7 +245,25 @@ export default async function Home() {
         </p>
         <p>Built: {BUILT_AT}</p>
         <p>
-          Showing 4 of 4 public tasks. Private task count visible in admin view.
+          {countsData ? (
+            <>
+              Showing{" "}
+              <span className="font-mono text-text-2">
+                {countsData.public_count}
+              </span>{" "}
+              of{" "}
+              <span className="font-mono text-text-2">
+                {countsData.total_count}
+              </span>{" "}
+              tasks.{" "}
+              <span className="font-mono text-text-2">
+                {countsData.total_count - countsData.public_count}
+              </span>{" "}
+              tasks are private.
+            </>
+          ) : (
+            "Task counts unavailable."
+          )}
         </p>
       </footer>
     </main>
