@@ -33,6 +33,10 @@ Anything touching multiple files, schema, auth, or configuration requires **Plan
 
 If a stop condition fires mid-execution, STOP and report. Do not improvise around it.
 
+See §1.11 for post-APPROVED permission prompt conventions.
+
+See §1.12 for when verbatim-dictation briefs may skip Plan Mode entirely.
+
 ## Scope
 
 This repo is errin-os: Next.js dashboard at `errin-os.netlify.app` (public read) and `/admin` (auth-gated write), backed by Supabase. Claude is the build agent. Everything else is out of scope until `DECISIONS.md` says otherwise.
@@ -164,3 +168,21 @@ Default table:
 [HARD] `git commit` and `git push` never go `Always allow`. The per-step gate invariance of §1.7 is not relaxed by plan approval — plan approval gates the *work*, not the individual semantic git actions. This also holds when Claude Code offers an "Always allow" button: the correct answer is still `Allow once`.
 
 If Claude Code attempts to edit a file or run a command not covered by the plan, deny the prompt and flag to the operator. That's a scope-drift signal, not a routine edit — re-plan before proceeding.
+
+### 1.12 Verbatim-dictation exemption from Plan Mode
+
+§28 / the Plan-Mode-then-APPROVED pattern requires Plan Mode for changes touching multiple files, schema, auth, or configuration. CLAUDE.md edits arguably qualify as "configuration." A verbatim-dictation brief — where the operator supplies the exact content to add and the exact commit message in the brief itself — may skip Plan Mode without violation.
+
+**Definition.** A brief qualifies as verbatim dictation when all three hold:
+
+1. The exact content to add or change is supplied in the brief, character-for-character (not "add a section about X" but "add this section: <verbatim text>")
+2. The commit message is supplied in the brief, character-for-character
+3. The change touches a single file
+
+**Why the exemption holds.** Plan Mode's purpose is to surface architectural calls, scope ambiguity, and risky-edit decisions before they're made. When the operator has dictated content and commit message verbatim, those decisions have already been made — the plan would just be ceremony restating the brief.
+
+[HARD] The exemption applies only when all three conditions are met. If the brief says "add a section about X with these key points" rather than supplying the exact text, that's not dictation — Plan Mode applies. If the brief touches a second file (even tangentially, like updating a cross-reference), Plan Mode applies. If the commit message is left for the executor to draft, Plan Mode applies.
+
+[HARD] The four-gate git sequence (§1.7) and the printf + wc -l + -F pattern (§1.1) are not relaxed by this exemption. Only the Plan Mode artifact is skipped — execution discipline remains identical.
+
+When in doubt, write the plan. The cost of an unnecessary plan is small; the cost of a missed architectural call is the rest of the session debugging it.
