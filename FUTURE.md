@@ -12,3 +12,4 @@ Deferred items. Nothing here is in scope for v1. Entries explain what and why; t
 ## Public per-card status pill
 
 - Public per-card status pill: redundant with status filter pills + section grouping? Revisit when admin form expansion (Brief B) ships and public view content density is reassessed. Sourced from 2B-Fix-9 plan deliberation.
+- Public/admin layout convergence: admin uses horizontal bottom-row badges (2B-Fix-8), public retains right-side vertical stack. Padding harmonised in 2B-Fix-9 but layout divergence persists, requiring two card components (AdminTaskCard.tsx standalone + inlined TaskCard helper in TaskFilter.tsx). Every cross-surface change touches both. Revisit during Phase 4 real-data usage — if public can absorb the admin pattern without losing portfolio polish, the dual-component overhead disappears. Sourced from 2B-Fix-9 post-ship operator observation.
