@@ -122,17 +122,8 @@ export function AdminTaskCard({ task }: { task: Task }) {
         borderStyle:
           optimisticTask.visibility === "public" ? "solid" : "dashed",
       }}
-      className={`relative border border-rule bg-bg-card px-3 pt-8 pb-3 ${isPending ? "opacity-70" : ""}`}
+      className={`relative border border-rule bg-bg-card p-3 ${isPending ? "opacity-70" : ""}`}
     >
-      <button
-        type="button"
-        onClick={toggleVisibility}
-        aria-label="Toggle visibility"
-        className="absolute top-2 right-2 border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3 hover:border-text hover:text-text"
-      >
-        {optimisticTask.visibility === "public" ? "PUBLIC" : "PRIVATE"}
-      </button>
-
       <div className="flex items-baseline gap-2">
         {optimisticTask.short_id && (
           <span className="font-mono text-xs text-text-3">
@@ -173,6 +164,14 @@ export function AdminTaskCard({ task }: { task: Task }) {
             {optimisticTask.title}
           </h3>
         )}
+        <button
+          type="button"
+          onClick={toggleVisibility}
+          aria-label="Toggle visibility"
+          className="ml-auto border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3 hover:border-text hover:text-text"
+        >
+          {optimisticTask.visibility === "public" ? "PUBLIC" : "PRIVATE"}
+        </button>
       </div>
 
       {editingField === "description" ? (

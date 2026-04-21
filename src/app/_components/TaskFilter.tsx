@@ -30,12 +30,8 @@ function TaskCard({ task }: { task: Task }) {
       style={{
         borderStyle: task.visibility === "public" ? "solid" : "dashed",
       }}
-      className="relative border border-rule bg-bg-card px-4 pt-8 pb-4"
+      className="relative border border-rule bg-bg-card p-3"
     >
-      <span className="absolute top-2 right-2 border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
-        {task.visibility === "public" ? "PUBLIC" : "PRIVATE"}
-      </span>
-
       <div className="flex items-start gap-3">
         <div className="flex-1">
           <div className="flex items-baseline gap-2">
@@ -50,6 +46,9 @@ function TaskCard({ task }: { task: Task }) {
               {task.status.replace("_", " ")}
             </span>
             <h3 className="font-sans font-semibold text-text">{task.title}</h3>
+            <span className="ml-auto border border-solid border-rule px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-text-3">
+              {task.visibility === "public" ? "PUBLIC" : "PRIVATE"}
+            </span>
           </div>
 
           {task.description && (
